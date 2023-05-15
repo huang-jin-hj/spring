@@ -21,6 +21,7 @@ public class TestWatch {
             // 获取发生事件的节点路径
             String path = watchedEvent.getPath();
             System.out.println(path);
+
         });
 
         // 一旦注册便会一直监听,只要有变化, 就会通知全局监听器
