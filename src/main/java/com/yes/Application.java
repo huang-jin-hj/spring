@@ -20,9 +20,11 @@ public class Application {
 
 
         ConfigurableApplicationContext run = SpringApplication.run(Application.class, args);
-        HJHSFConfigServer bean = run.getBean(HJHSFConfigServer.class);
+        Test bean = run.getBean(Test.class);
 
-        System.out.println(bean.getZkServer());
+//        HJHSFAutoConfiguration bean = run.getBean(HJHSFAutoConfiguration.class);
+//
+//        System.out.println(bean.hjhsfConfigServer.getZkServer());
     }
 
 }
