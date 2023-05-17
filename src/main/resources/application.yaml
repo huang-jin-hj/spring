@@ -1,0 +1,5 @@
+hjhsf:
+  zkServer: 127.0.0.1:2181
+
+server:
+  port: 8083

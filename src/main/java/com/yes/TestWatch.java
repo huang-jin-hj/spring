@@ -34,31 +34,38 @@ public class TestWatch implements Watcher {
     }
 
     private void watch(String path) throws InterruptedException, KeeperException {
-        System.out.println("监视节点" + path);
-        List<String> children = this.zooKeeper.getChildren(path, true);
-        System.out.println("子节点有" + children.toString());
+        try {
+            System.out.println("监视节点" + path);
+            List<String> children = this.zooKeeper.getChildren(path, true);
+            System.out.println("子节点有" + children.toString());
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
 
     @Override
     public void process(WatchedEvent event) {
-        System.out.println("监视节点" + event.getPath());
-        List<String> children = null;
-        try {
-            children = this.zooKeeper.getChildren(event.getPath(), true);
-        } catch (KeeperException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("子节点有" + children.toString());
-        for (String child : children) {
+        System.out.println(event);
+        if (event.getType() == Event.EventType.NodeChildrenChanged){
+            System.out.println("监视节点" + event.getPath());
+            List<String> children = null;
             try {
-                this.zooKeeper.getChildren(event.getPath() + "/" + child, true);
+                children = this.zooKeeper.getChildren(event.getPath(), true);
             } catch (KeeperException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
+            }
+            System.out.println("子节点有" + children.toString());
+            for (String child : children) {
+                try {
+                    this.zooKeeper.getChildren(event.getPath() + "/" + child, true);
+                } catch (KeeperException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

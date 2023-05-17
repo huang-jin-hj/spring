@@ -1,12 +1,9 @@
 package com.yes;
 
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.io.IOException;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
  * Created by huangJin on 2023/5/15.
@@ -14,7 +11,18 @@ import java.io.IOException;
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(Application.class, args);
+//        AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
+//        RootBeanDefinition rootBeanDefinition = new RootBeanDefinition();
+//        rootBeanDefinition.setBeanClass(Teacher.class);
+//        rootBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(new Student());
+//        annotationConfigApplicationContext.registerBeanDefinition("teacher", rootBeanDefinition);
+//        annotationConfigApplicationContext.refresh();
+
+
+        ConfigurableApplicationContext run = SpringApplication.run(Application.class, args);
+        HJHSFConfigServer bean = run.getBean(HJHSFConfigServer.class);
+
+        System.out.println(bean.getZkServer());
     }
 
 }
