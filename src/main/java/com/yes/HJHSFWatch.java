@@ -6,9 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 //@Component
 public class HJHSFWatch implements Watcher {
@@ -26,6 +27,8 @@ public class HJHSFWatch implements Watcher {
 
     ZooKeeper zooKeeper;
 
+    Map<String, Set<String>> metaInfo = new ConcurrentHashMap<>();
+
     public HJHSFWatch() throws Exception {
         this.connect();
         this.createPersistentNode(HJHSF_NODE, false);
@@ -33,24 +36,41 @@ public class HJHSFWatch implements Watcher {
     }
 
     public void createService(String pathInfo){
-        String[] path_info = pathInfo.split("/");
-
-
-    }
-
-
-    public static void main(String[] args) throws Exception {
-
-        HJHSFWatch testWatch = new HJHSFWatch();
-
-
-        // 线程休眠, 否则不能监控到数据
-        Scanner scanner = new Scanner(System.in);
-        while (scanner.next().equals("bye")){
-            break;
+        try {
+            this.createPersistentNode(HJHSF_NODE + "/" + pathInfo,  false);
+            this.watch(HJHSF_NODE + "/" + pathInfo);
+            String value = InetAddress.getLocalHost().getHostAddress() + "|" + hjhsfConfigServer.getPort();
+            this.createEphemeralNode(HJHSF_NODE + "/" + pathInfo + "/" + value, false);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (KeeperException e) {
+            throw new RuntimeException(e);
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
         }
 
     }
+
+
+
+
+
+
+    public static void main(String[] args) throws Exception {
+        System.out.println(InetAddress.getLocalHost().getHostAddress());
+
+//        HJHSFWatch testWatch = new HJHSFWatch();
+//
+//
+//        // 线程休眠, 否则不能监控到数据
+//        Scanner scanner = new Scanner(System.in);
+//        while (scanner.next().equals("bye")){
+//            break;
+//        }
+
+    }
+
+
 
 
     private void createPersistentNode(String path, boolean watcher) throws InterruptedException, KeeperException {
@@ -88,7 +108,6 @@ public class HJHSFWatch implements Watcher {
 
     @Override
     public void process(WatchedEvent event) {
-        System.out.println(event);
         if (event.getType() == Event.EventType.NodeChildrenChanged){
             System.out.println("监视节点" + event.getPath());
             List<String> children = null;
@@ -101,6 +120,13 @@ public class HJHSFWatch implements Watcher {
             }
             System.out.println("子节点有" + children.toString());
             for (String child : children) {
+                if (isNewService(event.getPath())){
+                    HashSet<String> strings = new HashSet<>();
+                    metaInfo.put(getLast(event.getPath()), strings);
+                }else {
+                    Set<String> strings = metaInfo.get(getService(event.getPath()));
+                    strings.add(getLast(event.getPath()));
+                }
                 try {
                     this.zooKeeper.getChildren(event.getPath() + "/" + child, true);
                 } catch (KeeperException e) {
@@ -110,5 +136,30 @@ public class HJHSFWatch implements Watcher {
                 }
             }
         }
+    }
+
+
+    private static String getService(String path){
+        int i = path.lastIndexOf("/");
+        path = path.substring(0, i);
+        return getLast(path);
+    }
+
+    private static String getLast(String path){
+        int i = path.lastIndexOf("/");
+        return path.substring(i + 1);
+    }
+
+    private static boolean isNewService(String path){
+        boolean findOne = false;
+        for (int i = 0; i < path.length(); i++) {
+            if (path.charAt(i) == '/'){
+                if (findOne){
+                    return true;
+                }
+                findOne = true;
+            }
+        }
+        return false;
     }
 }

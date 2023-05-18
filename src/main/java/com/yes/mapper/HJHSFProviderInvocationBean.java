@@ -1,10 +1,15 @@
 package com.yes.mapper;
 
+import com.yes.HJHSF;
+import com.yes.HJHSFCommunication;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -12,10 +17,13 @@ import java.lang.reflect.Proxy;
 /**
  * Created by huangJin on 2023/5/16.
  */
-public class HJHSFProviderInvocationBean implements InvocationHandler, FactoryBean, ApplicationContextAware {
-    private Class hsfInterface;
+public class HJHSFProviderInvocationBean implements InvocationHandler, FactoryBean, ApplicationContextAware, InitializingBean {
+    private Class<?> hsfInterface;
 
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private HJHSFCommunication hjhsfCommunication;
 
     private Object targetBean;
 
@@ -49,5 +57,13 @@ public class HJHSFProviderInvocationBean implements InvocationHandler, FactoryBe
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        HJHSF annotation = this.hsfInterface.getAnnotation(HJHSF.class);
+        String serviceName = annotation.serviceName();
+//        hjhsfCommunication.
+
     }
 }

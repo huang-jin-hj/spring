@@ -3,14 +3,30 @@ package com.yes;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.Map;
 
 /**
  * Created by huangJin on 2023/5/15.
  */
 @SpringBootApplication
+//@Import(HJHSFScannerRegistrar.class)
 public class Application {
+
+
+
     public static void main(String[] args) throws Exception {
+        for (Method declaredMethod : B.class.getDeclaredMethods()) {
+            if (declaredMethod.getName().equals("test")){
+                for (Parameter parameter : declaredMethod.getParameters()) {
+                    System.out.println(parameter.getType());
+                }
+            }
+        }
+
 //        AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
 //        RootBeanDefinition rootBeanDefinition = new RootBeanDefinition();
 //        rootBeanDefinition.setBeanClass(Teacher.class);
@@ -18,13 +34,26 @@ public class Application {
 //        annotationConfigApplicationContext.registerBeanDefinition("teacher", rootBeanDefinition);
 //        annotationConfigApplicationContext.refresh();
 
-
-        ConfigurableApplicationContext run = SpringApplication.run(Application.class, args);
-        Test bean = run.getBean(Test.class);
+//        ConfigurableApplicationContext run = SpringApplication.run(Application.class, args);
+//        Map<String, B> beansOfType = run.getBeansOfType(B.class);
+//        System.out.println(run.getBean("b"));
 
 //        HJHSFAutoConfiguration bean = run.getBean(HJHSFAutoConfiguration.class);
 //
 //        System.out.println(bean.hjhsfConfigServer.getZkServer());
+    }
+
+
+    static interface A{
+        default void test(){
+
+        };
+    }
+
+    static class B implements A{
+        public void test(String a, String b) {
+            System.out.println(123);
+        }
     }
 
 }
