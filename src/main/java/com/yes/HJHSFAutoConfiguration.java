@@ -13,13 +13,8 @@ import org.springframework.context.annotation.Import;
  */
 
 
-//@Configuration
-//@EnableConfigurationProperties(HJHSFConfigServer.class)
-
+@Configuration
+@EnableConfigurationProperties(HJHSFConfigServer.class)
 @Import(HJHSFScannerRegistrar.class)
 public class HJHSFAutoConfiguration {
-    @Autowired
-    HJHSFConfigServer hjhsfConfigServer;
-
-
 }

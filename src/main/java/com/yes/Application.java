@@ -1,9 +1,11 @@
 package com.yes;
 
+import com.yes.scan.HJHSFScannerRegistrar;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -13,19 +15,19 @@ import java.util.Map;
  * Created by huangJin on 2023/5/15.
  */
 @SpringBootApplication
-//@Import(HJHSFScannerRegistrar.class)
 public class Application {
 
 
-
     public static void main(String[] args) throws Exception {
-        for (Method declaredMethod : B.class.getDeclaredMethods()) {
-            if (declaredMethod.getName().equals("test")){
-                for (Parameter parameter : declaredMethod.getParameters()) {
-                    System.out.println(parameter.getType());
-                }
-            }
-        }
+        SpringApplication.run(Application.class, args);
+
+//        for (Method declaredMethod : B.class.getDeclaredMethods()) {
+//            if (declaredMethod.getName().equals("test")){
+//                for (Parameter parameter : declaredMethod.getParameters()) {
+//                    System.out.println(parameter.getType());
+//                }
+//            }
+//        }
 
 //        AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
 //        RootBeanDefinition rootBeanDefinition = new RootBeanDefinition();
