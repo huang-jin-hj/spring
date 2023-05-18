@@ -1,5 +1,6 @@
 package com.yes;
 
+import io.netty.util.internal.ConcurrentSet;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +36,9 @@ public class HJHSFWatch implements Watcher {
         this.watch(HJHSF_NODE);
     }
 
-    public void createService(String pathInfo){
+    public void createService(String pathInfo) {
         try {
-            this.createPersistentNode(HJHSF_NODE + "/" + pathInfo,  false);
+            this.createPersistentNode(HJHSF_NODE + "/" + pathInfo, false);
             this.watch(HJHSF_NODE + "/" + pathInfo);
             String value = InetAddress.getLocalHost().getHostAddress() + "|" + hjhsfConfigServer.getPort();
             this.createEphemeralNode(HJHSF_NODE + "/" + pathInfo + "/" + value, false);
@@ -52,8 +53,9 @@ public class HJHSFWatch implements Watcher {
     }
 
 
-
-
+    public Set<String> getMetaInfo(String serviceName){
+        return this.metaInfo.get(serviceName);
+    }
 
 
     public static void main(String[] args) throws Exception {
@@ -71,18 +73,16 @@ public class HJHSFWatch implements Watcher {
     }
 
 
-
-
     private void createPersistentNode(String path, boolean watcher) throws InterruptedException, KeeperException {
         Stat exists = this.zooKeeper.exists(path, watcher);
-        if (exists == null){
+        if (exists == null) {
             this.zooKeeper.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
         }
     }
 
     private void createEphemeralNode(String path, boolean watcher) throws InterruptedException, KeeperException {
         Stat exists = this.zooKeeper.exists(path, watcher);
-        if (exists == null){
+        if (exists == null) {
             this.zooKeeper.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
         }
     }
@@ -100,7 +100,7 @@ public class HJHSFWatch implements Watcher {
             System.out.println("监视节点" + path);
             List<String> children = this.zooKeeper.getChildren(path, true);
             System.out.println("子节点有" + children.toString());
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
@@ -108,7 +108,7 @@ public class HJHSFWatch implements Watcher {
 
     @Override
     public void process(WatchedEvent event) {
-        if (event.getType() == Event.EventType.NodeChildrenChanged){
+        if (event.getType() == Event.EventType.NodeChildrenChanged) {
             System.out.println("监视节点" + event.getPath());
             List<String> children = null;
             try {
@@ -119,47 +119,31 @@ public class HJHSFWatch implements Watcher {
                 throw new RuntimeException(e);
             }
             System.out.println("子节点有" + children.toString());
-            for (String child : children) {
-                if (isNewService(event.getPath())){
-                    HashSet<String> strings = new HashSet<>();
-                    metaInfo.put(getLast(event.getPath()), strings);
-                }else {
-                    Set<String> strings = metaInfo.get(getService(event.getPath()));
-                    strings.add(getLast(event.getPath()));
-                }
-                try {
-                    this.zooKeeper.getChildren(event.getPath() + "/" + child, true);
-                } catch (KeeperException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+            if (isNewService(event.getPath())) {
+                Set<String> strings = Collections.synchronizedSet(new HashSet<String>());
+                metaInfo.put(getLast(event.getPath()), strings);
+            } else {
+                Set<String> strings = metaInfo.get(getService(event.getPath()));
+                for (String child : children) {
+                    strings.add(child);
                 }
             }
         }
     }
 
 
-    private static String getService(String path){
+    private static String getService(String path) {
         int i = path.lastIndexOf("/");
         path = path.substring(0, i);
         return getLast(path);
     }
 
-    private static String getLast(String path){
+    private static String getLast(String path) {
         int i = path.lastIndexOf("/");
         return path.substring(i + 1);
     }
 
-    private static boolean isNewService(String path){
-        boolean findOne = false;
-        for (int i = 0; i < path.length(); i++) {
-            if (path.charAt(i) == '/'){
-                if (findOne){
-                    return true;
-                }
-                findOne = true;
-            }
-        }
-        return false;
+    private static boolean isNewService(String path) {
+        return path.lastIndexOf("/") == 0;
     }
 }

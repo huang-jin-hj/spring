@@ -20,6 +20,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by huangJin on 2023/5/17.
@@ -40,6 +41,15 @@ public class HJHSFCommunication implements ApplicationContextAware {
     public HJHSFCommunication(HJHSFConfigServer hjhsfConfigServer) throws IOException {
         this.socket = new ServerSocket(StringUtils.hasText(String.valueOf(hjhsfConfigServer.getPort())) ? hjhsfConfigServer.getPort() : 8989);
         listen();
+    }
+
+
+    public void createService(String pathInfo){
+        this.hjhsfWatch.createService(pathInfo);
+    }
+
+    public Set getMetaInfo(String serviceName){
+        return this.hjhsfWatch.getMetaInfo(serviceName);
     }
 
     public void listen(){
@@ -103,8 +113,15 @@ public class HJHSFCommunication implements ApplicationContextAware {
     }
 
 
-    public Object remoteCall(){
-        return null;
+    public String remoteCall(String methInfo, String jsonData) throws IOException {
+        String[] ip_port = methInfo.split("|");
+        Socket socket = new Socket(ip_port[0], Integer.parseInt(ip_port[1]));
+        OutputStream outputStream = socket.getOutputStream();
+        outputStream.write(jsonData.getBytes());
+        InputStream inputStream = socket.getInputStream();
+        byte[] bytes = new byte[1024];
+        int read = inputStream.read(bytes);
+        return new String(bytes,0, read);
     }
 
 

@@ -63,7 +63,6 @@ public class HJHSFProviderInvocationBean implements InvocationHandler, FactoryBe
     public void afterPropertiesSet() throws Exception {
         HJHSF annotation = this.hsfInterface.getAnnotation(HJHSF.class);
         String serviceName = annotation.serviceName();
-//        hjhsfCommunication.
-
+        hjhsfCommunication.createService(serviceName);
     }
 }
